@@ -1,0 +1,46 @@
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f9fafb;
+
+  .main-content {
+    flex: 1;
+    margin-left: 280px; // Same as sidebar width
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+
+    .content-wrapper {
+      flex: 1;
+      padding: 24px;
+
+      .dashboard-header {
+        margin-bottom: 32px;
+
+        h1 {
+          font-size: 32px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin: 0;
+          font-family: 'DM Sans', sans-serif;
+        }
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .dashboard-container {
+    .main-content {
+      margin-left: 0;
+    }
+  }
+}
