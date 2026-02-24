@@ -1,0 +1,86 @@
+<div class="user-list-container">
+  <div class="user-list-header">
+    <h2>Gestion des utilisateurs</h2>
+    <div class="user-list-actions">
+      <button class="add-btn" (click)="openAddModal()">Ajouter un utilisateur</button>
+      <select class="filter-select" [(ngModel)]="selectedRole">
+        <option value="">Tous les rôles</option>
+        <option value="Admin">Admin</option>
+        <option value="Utilisateur">Utilisateur</option>
+      </select>
+    </div>
+  </div>
+
+  <table class="user-table">
+    <thead>
+      <tr>
+        <th>Utilisateur</th>
+        <th>Email</th>
+        <th>Rôle</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of filteredUsers">
+        <td>
+          <div class="user-info">
+            <div class="user-avatar">{{ user.nom.charAt(0) }}</div>
+            <div>
+              <div class="user-nom">{{ user.nom }}</div>
+              <div class="user-id">#USR-{{ user.id }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ user.email }}</td>
+        <td>
+          <span class="role-badge" [ngClass]="{
+            'admin': user.role === 'Admin',
+            'utilisateur': user.role === 'Utilisateur'
+          }">{{ user.role }}</span>
+        </td>
+        <td>
+          <button class="edit-btn" (click)="openEditModal(user)">
+          <span class="iconify" data-icon="solar:server-square-update-line-duotone" style="font-size: 1.15em;"></span>
+          </button>
+          <button class="delete-btn" (click)="deleteUser(user.id)">
+            <span class="iconify" data-icon="solar:trash-bin-trash-line-duotone" style="font-size: 1.3em;"></span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="user-pagination">
+    <button class="pagination-btn">Previous</button>
+    <button class="pagination-btn active">1</button>
+    <button class="pagination-btn">2</button>
+    <button class="pagination-btn">3</button>
+    <button class="pagination-btn">Next</button>
+  </div>
+
+  <div *ngIf="showModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>{{ selectedUser?.id ? 'Modifier l\'utilisateur' : 'Ajouter un utilisateur' }}</h3>
+      <form (ngSubmit)="saveUser()">
+
+        <label>Nom</label>
+        <input [(ngModel)]="formData.nom" name="nom" placeholder="Nom complet" required />
+
+        <label>Email</label>
+        <input [(ngModel)]="formData.email" name="email" type="email" placeholder="email@exemple.com" required />
+
+        <label>Rôle</label>
+        <select [(ngModel)]="formData.role" name="role" required>
+          <option value="Admin">Admin</option>
+          <option value="Utilisateur">Utilisateur</option>
+        </select>
+
+        <div class="form-actions">
+          <button type="button" (click)="closeModal()">Annuler</button>
+          <button type="submit">{{ selectedUser?.id ? 'Enregistrer' : 'Ajouter' }}</button>
+        </div>
+      </form>
+    </div>
+    <div class="modal-backdrop" (click)="closeModal()"></div>
+  </div>
+</div>

@@ -1,0 +1,79 @@
+<div class="commandes-list-container">
+  <div class="commandes-list-header">
+    <h2>Gestion des commandes</h2>
+    <div class="commandes-list-actions">
+      <button class="add-btn" (click)="openAddForm()">Ajouter une commande</button>
+      <select class="filter-select" [(ngModel)]="selectedStatus">
+        <option value="">Tous statuts</option>
+        <option value="En cours">En cours</option>
+        <option value="Livrée">Livrée</option>
+        <option value="Annulée">Annulée</option>
+      </select>
+    </div>
+  </div>
+
+  <table class="commandes-table">
+    <thead>
+      <tr>
+        <th>Client</th>
+        <th>Date</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let commande of filteredCommandes">
+        <td>
+          <div class="commande-info">
+            <div class="commande-avatar">{{ commande.client.charAt(0) }}</div>
+            <div>
+              <div class="commande-client">{{ commande.client }}</div>
+              <div class="commande-id">#CMD-{{ commande.id }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ commande.date }}</td>
+        <td><b>{{ commande.total }} €</b></td>
+        <td>
+          <span class="status"
+            [ngClass]="{
+              'livree': commande.status === 'Livrée',
+              'en-cours': commande.status === 'En cours',
+              'annulee': commande.status === 'Annulée'
+            }">
+            {{ commande.status }}
+          </span>
+        </td>
+        <td>
+          <button class="edit-btn" (click)="openEditForm(commande)">
+          <span class="iconify" data-icon="solar:server-square-update-line-duotone" style="font-size: 1.15em;"></span>
+          </button>
+          <button class="delete-btn" (click)="deleteCommande(commande.id)">
+            <span class="iconify" data-icon="solar:trash-bin-trash-line-duotone" style="font-size: 1.3em;"></span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="commandes-pagination">
+    <button class="pagination-btn">Previous</button>
+    <button class="pagination-btn active">1</button>
+    <button class="pagination-btn">2</button>
+    <button class="pagination-btn">3</button>
+    <button class="pagination-btn">Next</button>
+  </div>
+
+  <!-- Modal Formulaire -->
+  <div *ngIf="showForm" class="modal-overlay">
+    <div class="modal-content">
+      <app-commandes-form
+        [commande]="editCommande"
+        (save)="onSaveCommande($event)"
+        (cancel)="closeForm()">
+      </app-commandes-form>
+    </div>
+    <div class="modal-backdrop" (click)="closeForm()"></div>
+  </div>
+</div>

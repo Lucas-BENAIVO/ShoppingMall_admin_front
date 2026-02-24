@@ -1,0 +1,128 @@
+
+.recent-users-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(30,40,100,0.07);
+  padding: 24px 20px;
+  box-sizing: border-box;
+  margin-top: 24px; // Espace le widget du haut
+
+  h3 {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin: 0;
+    color: #111;
+  }
+}
+
+.recent-users-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.view-all-link {
+  color: #6366f1;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.93em;
+  white-space: nowrap;
+
+  &:hover { text-decoration: underline; }
+}
+
+.recent-users-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th, td {
+    padding: 10px 8px;
+    text-align: left;
+  }
+
+  th {
+    color: #aab0c8;
+    font-size: 0.82rem;
+    font-weight: 700;
+    background: #f9fafb;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  tr {
+    border-bottom: 1px solid #f1f3f8;
+    &:last-child { border-bottom: none; }
+  }
+
+  td {
+    font-size: 0.93em;
+    color: #333;
+    vertical-align: middle;
+  }
+}
+
+.user-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #6366f1;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85em;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #111;
+  vertical-align: middle;
+}
+
+
+.role-badge {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+
+  &.shop-owner,
+  &.propriétaire {
+    background: #e8fbe9;
+    color: #22c55e;
+  }
+
+  &.buyer,
+  &.acheteur {
+    background: #e0e7ff;
+    color: #6366f1;
+  }
+}
+
+
+.status-badge {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.82em;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+
+  &.active,
+  &.actif {
+    background: #e8fbe9;
+    color: #22c55e;
+  }
+
+  &.pending,
+  &.en-attente {
+    background: #fffbe6;
+    color: #f59e42;
+  }
+}

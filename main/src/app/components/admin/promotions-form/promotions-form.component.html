@@ -1,0 +1,28 @@
+<h3>{{ promotion ? 'Modifier la promotion' : 'Ajouter une promotion' }}</h3>
+<form (ngSubmit)="submit()">
+
+  <label>Type</label>
+  <select [(ngModel)]="formData.type" name="type" required>
+    <option value="Code promo">Code promo</option>
+    <option value="Carte fidélité">Carte de fidélité</option>
+  </select>
+
+  <label>Nom</label>
+  <input [(ngModel)]="formData.nom" name="nom" placeholder="Ex: WELCOME10" required />
+
+  <label>Valeur</label>
+  <input [(ngModel)]="formData.valeur" name="valeur" placeholder="Ex: 10% ou 5€" required />
+
+  <label>Statut</label>
+  <select [(ngModel)]="formData.statut" name="statut" required>
+    <option value="Actif">Actif</option>
+    <option value="Inactif">Inactif</option>
+    <option value="Expiré">Expiré</option>
+  </select>
+
+  <div class="form-actions">
+    <button type="button" (click)="close()">Annuler</button>
+    <button type="submit">{{ promotion ? 'Enregistrer' : 'Ajouter' }}</button>
+  </div>
+
+</form>

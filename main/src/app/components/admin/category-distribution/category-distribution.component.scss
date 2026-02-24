@@ -1,0 +1,74 @@
+.category-distribution-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(30,40,100,0.07);
+  padding: 24px 20px;
+  height: 100%;
+  box-sizing: border-box;
+
+  h3 {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin: 0 0 18px 0;
+    color: #111;
+  }
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.category-name {
+  min-width: 160px;
+  font-size: 0.93em;
+  font-weight: 500;
+  color: #222;
+}
+
+.category-bar-bg {
+  flex: 1;
+  background: #f1f3f8;
+  border-radius: 8px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.category-bar {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.4s ease;
+}
+
+.category-count {
+  min-width: 65px;
+  text-align: right;
+  color: #888;
+  font-size: 0.88em;
+  font-weight: 600;
+}
+
+.category-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f3f8;
+  font-weight: 600;
+  font-size: 0.95em;
+  color: #555;
+
+  .total-count {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: #111;
+  }
+}

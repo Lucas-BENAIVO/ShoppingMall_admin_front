@@ -1,0 +1,12 @@
+<div class="top-shops-card">
+  <h3>Meilleures boutiques</h3>
+  <div class="top-shops-list">
+    <div class="shop-row" *ngFor="let shop of topShops">
+      <span class="rank" [ngClass]="'rank-' + shop.rank">{{ shop.rank }}</span>
+      <span class="shop-name">{{ shop.name }}</span>
+      <span class="shop-category">{{ shop.category }}</span>
+      <span class="shop-revenue">{{ shop.revenue }}</span>
+      <span class="shop-change">{{ shop.change }}</span>
+    </div>
+  </div>
+</div>

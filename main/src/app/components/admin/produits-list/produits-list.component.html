@@ -1,0 +1,78 @@
+
+<div class="produits-list-container">
+  <!-- Filtre et pagination ici -->
+  <div class="produits-list-header">
+    <h2>Inventaire des produits</h2>
+    <div class="produits-list-actions">
+      <button class="add-btn" (click)="openAddForm()">Ajouter un produit</button>
+      <select class="filter-select">
+        <option value="">Toutes catégories</option>
+        <option value="electronics">Électronique</option>
+        <option value="audio">Audio</option>
+        <option value="accessories">Accessoires</option>
+      </select>
+    </div>
+  </div>
+
+  <table class="produits-table">
+    <thead>
+      <tr>
+        <th>Produit</th>
+        <th>SKU</th>
+        <th>Prix</th>
+        <th>Stock</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Exemple de ligne, à remplacer par *ngFor -->
+      <tr>
+        <td>
+          <div class="produit-info">
+            <img src="assets/images/products/headphones.jpg" alt="Wireless Headphones Pro" />
+            <div>
+              <div class="produit-nom">Wireless Headphones Pro</div>
+              <div class="produit-categorie">Electronics</div>
+            </div>
+          </div>
+        </td>
+        <td>WHP-001</td>
+        <td><b>$149.99</b></td>
+        <td>45 units</td>
+        <td><span class="status in-stock">In Stock</span></td>
+        <td>
+          <button class="edit-btn" (click)="openEditForm({ nom: 'Wireless Headphones Pro', categorie: 'Electronics', sku: 'WHP-001', prix: 149.99, stock: 45, status: 'in-stock' })">
+            <span class="iconify" data-icon="solar:pen-line-duotone" style="font-size: 1.3em;"></span>
+          </button>
+          <button class="delete-btn">
+            <span class="iconify" data-icon="solar:trash-bin-trash-line-duotone" style="font-size: 1.3em;"></span>
+          </button>
+        </td>
+      </tr>
+      <!-- ...autres lignes... -->
+    </tbody>
+  </table>
+
+  <div class="produits-pagination">
+    <button class="pagination-btn">Previous</button>
+    <button class="pagination-btn active">1</button>
+    <button class="pagination-btn">2</button>
+    <button class="pagination-btn">3</button>
+    <button class="pagination-btn">Next</button>
+  </div>
+
+  <!-- Modal Formulaire -->
+  <div *ngIf="showForm" class="modal-overlay">
+    <div class="modal-content">
+      <app-produits-form
+        [product]="editProduct"
+        (save)="closeForm()"
+        (cancel)="closeForm()">
+      </app-produits-form>
+    </div>
+    <div class="modal-backdrop" (click)="closeForm()"></div>
+  </div>
+
+  <app-produits-form *ngIf="showForm" [product]="editProduct" (save)="closeForm()" (cancel)="closeForm()"></app-produits-form>
+</div>

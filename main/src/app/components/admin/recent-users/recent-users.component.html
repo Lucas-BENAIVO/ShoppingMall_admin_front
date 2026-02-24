@@ -1,0 +1,29 @@
+<div class="recent-users-card">
+  <div class="recent-users-header">
+    <h3>Inscriptions récentes d'utilisateurs</h3>
+    <a class="view-all-link" href="#">Voir tous les utilisateurs</a>
+  </div>
+  <table class="recent-users-table">
+    <thead>
+      <tr>
+        <th>Utilisateur</th>
+        <th>Email</th>
+        <th>Rôle</th>
+        <th>Date d'inscription</th>
+        <th>Statut</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>
+          <span class="user-avatar">{{ user.initials }}</span>
+          <span class="user-name">{{ user.name }}</span>
+        </td>
+        <td>{{ user.email }}</td>
+        <td><span class="role-badge" [ngClass]="user.role.toLowerCase().replace(' ', '-')">{{ user.role }}</span></td>
+        <td>{{ user.joined }}</td>
+        <td><span class="status-badge" [ngClass]="user.status.toLowerCase()">{{ user.status }}</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>

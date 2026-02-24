@@ -1,0 +1,77 @@
+.top-shops-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(30,40,100,0.07);
+  padding: 24px 20px;
+  height: 100%;
+  box-sizing: border-box;
+
+  h3 {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin: 0 0 18px 0;
+    color: #111;
+  }
+}
+
+.top-shops-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.shop-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rank {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.9em;
+  background: #e5e7eb;
+  color: #888;
+
+  &.rank-1 { background: #ffd700; color: #7a5c00; }
+  &.rank-2 { background: #e0e0e0; color: #555; }
+  &.rank-3 { background: #f59e42; color: #7a3c00; }
+}
+
+.shop-name {
+  flex: 1;
+  font-weight: 600;
+  color: #111;
+  font-size: 0.95em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shop-category {
+  font-size: 0.83em;
+  color: #aab0c8;
+  min-width: 130px;
+}
+
+.shop-revenue {
+  font-weight: 700;
+  color: #111;
+  font-size: 0.95em;
+  min-width: 70px;
+  text-align: right;
+}
+
+.shop-change {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #22c55e;
+  min-width: 45px;
+  text-align: right;
+}

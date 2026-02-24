@@ -1,0 +1,19 @@
+<form (ngSubmit)="onSubmit()" #formRef="ngForm">
+  <h3>{{ emplacement ? 'Modifier' : 'Ajouter' }} un emplacement</h3>
+  <div class="form-group">
+    <label>Boutique</label>
+    <input type="text" [(ngModel)]="form.boutique" name="boutique" required />
+  </div>
+  <div class="form-group">
+    <label>Position</label>
+    <input type="text" [(ngModel)]="form.position" name="position" required />
+  </div>
+  <div class="form-group">
+    <label>Description</label>
+    <textarea [(ngModel)]="form.description" name="description" rows="2" required></textarea>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="save-btn" [disabled]="formRef.invalid">{{ emplacement ? 'Enregistrer' : 'Ajouter' }}</button>
+    <button type="button" class="cancel-btn" (click)="onCancel()">Annuler</button>
+  </div>
+</form>

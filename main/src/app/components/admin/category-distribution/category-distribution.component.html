@@ -1,0 +1,17 @@
+    <div class="category-distribution-card">
+    <h3>Répartition par catégorie</h3>
+    <div class="category-list">
+        <div class="category-row" *ngFor="let cat of categories">
+        <span class="category-name">{{ cat.name }}</span>
+        <div class="category-bar-bg">
+            <div class="category-bar" [style.background]="cat.color" [style.width]="(cat.count / total * 100) + '%'">
+            </div>
+        </div>
+        <span class="category-count">{{ cat.count }} boutiques</span>
+        </div>
+    </div>
+    <div class="category-total">
+        <span>Total boutiques actives</span>
+        <span class="total-count">{{ total }}</span>
+    </div>
+    </div>

@@ -1,0 +1,26 @@
+<div class="produits-form-modal">
+  <div class="produits-form-container">
+    <h3>{{ product ? 'Modifier le produit' : 'Ajouter un produit' }}</h3>
+    <form (ngSubmit)="submit()">
+      <label>Nom</label>
+      <input [(ngModel)]="formData.nom" name="nom" required />
+      <label>Catégorie</label>
+      <input [(ngModel)]="formData.categorie" name="categorie" required />
+      <label>SKU</label>
+      <input [(ngModel)]="formData.sku" name="sku" required />
+      <label>Prix</label>
+      <input [(ngModel)]="formData.prix" name="prix" type="number" required />
+      <label>Stock</label>
+      <input [(ngModel)]="formData.stock" name="stock" type="number" required />
+      <label>Status</label>
+      <select [(ngModel)]="formData.status" name="status">
+        <option value="in-stock">En stock</option>
+        <option value="out-of-stock">Rupture</option>
+      </select>
+      <div class="form-actions">
+        <button type="submit">{{ product ? 'Enregistrer' : 'Ajouter' }}</button>
+        <button type="button" (click)="close()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>

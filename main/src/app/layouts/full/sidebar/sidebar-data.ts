@@ -53,6 +53,12 @@ export const navItems: NavItem[] = [
     route: '/ui-components/tables',
   },
 
+    {
+      displayName: 'Produits',
+      iconName: 'solar:cart-large-minimalistic-line-duotone',
+      route: '/admin/produits',
+    },
+
   {
     navCap: 'Extra',
   },
