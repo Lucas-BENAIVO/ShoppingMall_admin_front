@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
@@ -6,19 +6,35 @@ import { MaterialModule } from 'src/app/material.module';
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { AuthenticationService } from 'src/app/services/authentication.service';
 
 @Component({
   selector: 'app-side-login',
-  imports: [RouterModule, MaterialModule, FormsModule, ReactiveFormsModule, CommonModule],
+  standalone: true,
+  imports: [
+    RouterModule,
+    MaterialModule,
+    FormsModule,
+    ReactiveFormsModule,
+    CommonModule
+  ],
   templateUrl: './side-login.component.html',
   styleUrls: ['./side-login.component.scss'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AppSideLoginComponent {
-  constructor(private router: Router) {}
+
+  errorMessage: string = '';
+  loading: boolean = false;
+
+  constructor(
+    private router: Router,
+    private authService: AuthenticationService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   form = new FormGroup({
-    uname: new FormControl('', [Validators.required, Validators.minLength(6)]),
+    uname: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required]),
   });
 
@@ -27,6 +43,23 @@ export class AppSideLoginComponent {
   }
 
   submit() {
-    this.router.navigate(['']);
+    if (this.form.invalid) return;
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    const email = this.form.value.uname!;
+    const password = this.form.value.password!;
+
+    this.authService.login(email, password).subscribe({
+      next: () => {
+        this.router.navigate(['/admin/boutique']);
+      },
+      error: () => {
+        this.errorMessage = 'Email ou mot de passe incorrect';
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }
