@@ -1,61 +1,132 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface Boutique {
-  nom: string;
-  categorie: string;
-  image: string;
-  note: number;
-  avis: number;
-  etage: string;
-  statut: 'Ouvert' | 'Fermé';
-  badges?: string[];
-}
+import { FormsModule } from '@angular/forms';
+import { BoutiqueService, Boutique } from '../../../services/boutique.service';
+import { debounceTime, distinctUntilChanged, Subject, switchMap, of, catchError, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-boutique-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './boutique-list.component.html',
   styleUrls: ['./boutique-list.component.scss']
 })
-export class BoutiqueListComponent {
-  boutiques: Boutique[] = [
-    {
-      nom: 'Fils Urbains', categorie: 'Mode & Vêtements', image: 'assets/images/shops/urban-threads.jpg', note: 4.8, avis: 342, etage: 'Niveau 2, Zone A', statut: 'Ouvert', badges: ['EN VEDETTE', 'VÉRIFIÉ']
-    },
-    {
-      nom: 'TechHub Électronique', categorie: 'Électronique', image: 'assets/images/shops/techhub.jpg', note: 4.9, avis: 589, etage: 'Niveau 1, Zone C', statut: 'Ouvert', badges: ['VÉRIFIÉ']
-    },
-    {
-      nom: 'Fleur & Pétale', categorie: 'Maison & Décoration', image: 'assets/images/shops/bloom-petal.jpg', note: 4.7, avis: 218, etage: 'Niveau 3, Zone B', statut: 'Ouvert'
-    },
-    {
-      nom: 'Station Saveur', categorie: 'Alimentation & Boissons', image: 'assets/images/shops/flavor-station.jpg', note: 5.0, avis: 476, etage: 'Rez-de-chaussée, Zone A', statut: 'Ouvert', badges: ['EN VEDETTE', 'VÉRIFIÉ']
-    },
-    {
-      nom: 'Beauté Éclat', categorie: 'Beauté & Cosmétiques', image: 'assets/images/shops/glow-beauty.jpg', note: 4.5, avis: 194, etage: 'Niveau 2, Zone D', statut: 'Ouvert'
-    },
-    {
-      nom: 'Zone Sneakers', categorie: 'Mode & Vêtements', image: 'assets/images/shops/sneaker-zone.jpg', note: 4.6, avis: 412, etage: 'Niveau 1, Zone B', statut: 'Fermé', badges: ['VÉRIFIÉ']
-    },
-    {
-      nom: 'Havre de Livres', categorie: 'Maison & Décoration', image: 'assets/images/shops/book-haven.jpg', note: 4.9, avis: 287, etage: 'Niveau 2, Zone C', statut: 'Ouvert', badges: ['VÉRIFIÉ']
-    },
-    {
-      nom: 'Coin Café', categorie: 'Alimentation & Boissons', image: 'assets/images/shops/coffee-corner.jpg', note: 4.4, avis: 523, etage: 'Rez-de-chaussée, Zone B', statut: 'Ouvert', badges: ['EN VEDETTE']
-    },
-    {
-      nom: 'Bijouterie', categorie: 'Mode & Vêtements', image: 'assets/images/shops/jewelry-boutique.jpg', note: 4.8, avis: 156, etage: 'Niveau 3, Zone A', statut: 'Ouvert', badges: ['VÉRIFIÉ']
-    },
-    {
-      nom: 'Galaxie Sport', categorie: 'Mode & Vêtements', image: 'assets/images/shops/sports-galaxy.jpg', note: 4.7, avis: 398, etage: 'Niveau 2, Zone D', statut: 'Ouvert'
-    },
-    {
-      nom: 'Paradis des Animaux', categorie: 'Maison & Décoration', image: 'assets/images/shops/pet-paradise.jpg', note: 4.3, avis: 167, etage: 'Niveau 3, Zone C', statut: 'Ouvert'
-    },
-    {
-      nom: 'Studio Audio', categorie: 'Électronique', image: 'assets/images/shops/audio-studio.jpg', note: 4.6, avis: 301, etage: 'Niveau 2, Zone B', statut: 'Fermé'
-    }
-  ];
+export class BoutiqueListComponent implements OnInit, OnDestroy {
+  boutiques: Boutique[] = [];
+  filteredBoutiques: Boutique[] = [];
+
+  searchQuery = '';
+  isLoading = false;
+  errorMessage = '';
+
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private boutiqueService: BoutiqueService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.setupSearch();
+    this.loadBoutiques();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  loadBoutiques(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.boutiqueService.getAllBoutiques()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.boutiques = data ?? [];
+          this.filteredBoutiques = [...this.boutiques];
+          this.isLoading = false;
+          this.cdr.detectChanges(); // 👈 force la mise à jour
+        },
+        error: (err) => {
+          console.error('Erreur chargement boutiques', err);
+          this.errorMessage = 'Impossible de charger les boutiques.';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  private setupSearch(): void {
+    this.searchSubject.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      switchMap((query) => {
+        const trimmed = query.trim();
+        if (!trimmed) return of([...this.boutiques]);
+
+        return this.boutiqueService.searchBoutiqueByName(trimmed).pipe(
+          catchError(() => of(
+            this.boutiques.filter(b =>
+              b.name.toLowerCase().includes(trimmed.toLowerCase())
+            )
+          ))
+        );
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe((results) => {
+      this.filteredBoutiques = results ?? [];
+      this.cdr.detectChanges();
+    });
+  }
+
+  onSearchChange(value: string): void {
+    this.searchQuery = value;
+    this.searchSubject.next(value);
+  }
+
+  validateBoutique(boutique: Boutique): void {
+    this.boutiqueService.validateBoutique(boutique._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updated) => {
+          this.updateLocal(updated);
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Erreur validation', err)
+      });
+  }
+
+  suspendBoutique(boutique: Boutique): void {
+    this.boutiqueService.suspendBoutique(boutique._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updated) => {
+          this.updateLocal(updated);
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error('Erreur suspension', err)
+      });
+  }
+
+  private updateLocal(updated: Boutique): void {
+    this.boutiques = this.boutiques.map(b => b._id === updated._id ? updated : b);
+    this.filteredBoutiques = this.filteredBoutiques.map(b => b._id === updated._id ? updated : b);
+  }
+
+  getLogoUrl(logo: string): string {
+    if (!logo) return 'assets/images/shops/default.png';
+    return logo.startsWith('http') ? logo : `assets/images/shops/${logo}`;
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
 }

@@ -1,52 +1,85 @@
-    <div class="boutique-list-header">
-    <div class="filters">
-        <input type="text" placeholder="Rechercher une boutique, une catégorie ou une localisation..." />
-        <select>
-        <option>Toutes les catégories</option>
-        </select>
-        <select>
-        <option>Toutes les notes</option>
-        </select>
-        <select>
-        <option>Trier : En vedette</option>
-        </select>
-        <button class="filter-btn">Filtrer</button>
+<div class="boutique-list-header">
+  <div class="filters">
+    <input
+      type="text"
+      placeholder="Rechercher une boutique..."
+      [value]="searchQuery"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+    <button class="filter-btn" (click)="loadBoutiques()">Actualiser</button>
+  </div>
+  <div class="results-count">
+    <span class="count-strong">{{ filteredBoutiques.length }} boutiques</span> référencées
+  </div>
+</div>
+<!-- Chargement -->
+<div *ngIf="isLoading" class="loading-state">
+  Chargement des boutiques...
+</div>
+
+<!-- Erreur -->
+<div *ngIf="errorMessage && !isLoading" class="error-state">
+  <span>{{ errorMessage }}</span>
+  <button (click)="loadBoutiques()">Réessayer</button>
+</div>
+
+<!-- Grille -->
+<div class="boutique-grid" *ngIf="!isLoading && !errorMessage">
+  <div class="boutique-card" *ngFor="let boutique of filteredBoutiques">
+
+    <div class="card-image">
+      <img [src]="getLogoUrl(boutique.logo)" [alt]="boutique.name" />
+      <div class="badges">
+        <span class="badge verifie" *ngIf="boutique.isValidated">VÉRIFIÉ</span>
+        <span class="badge non-valide" *ngIf="!boutique.isValidated">EN ATTENTE</span>
+      </div>
     </div>
-    <div class="results-count"><span class="count-strong">{{ boutiques.length }} boutiques</span> référencées</div>
+
+    <div class="card-content">
+      <div class="card-title">{{ boutique.name }}</div>
+      <div class="card-category">{{ boutique.description }}</div>
+
+      <div class="location-status-row">
+        <span class="card-location">Ajouté le {{ formatDate(boutique.createdAt) }}</span>
+        <span class="status-badge" [ngClass]="boutique.isValidated ? 'ouvert' : 'ferme'">
+          <span class="dot"></span>
+          {{ boutique.isValidated ? 'Validé' : 'Suspendu' }}
+        </span>
+      </div>
+
+      <div class="boutique-actions">
+        <button class="view-btn">Voir la boutique</button>
+
+        <button
+          *ngIf="!boutique.isValidated"
+          class="icon-btn validate-btn"
+          title="Valider"
+          (click)="validateBoutique(boutique)"
+        >
+          <span class="iconify" data-icon="solar:check-circle-line-duotone" style="font-size:1.15em"></span>
+        </button>
+
+        <button
+          *ngIf="boutique.isValidated"
+          class="icon-btn suspend-btn"
+          title="Suspendre"
+          (click)="suspendBoutique(boutique)"
+        >
+          <span class="iconify" data-icon="solar:pause-circle-line-duotone" style="font-size:1.15em"></span>
+        </button>
+
+        <button class="icon-btn edit-btn" title="Modifier">
+          <span class="iconify" data-icon="solar:server-square-update-line-duotone" style="font-size:1.15em"></span>
+        </button>
+        <button class="icon-btn delete-btn" title="Supprimer">
+          <span class="iconify" data-icon="solar:trash-bin-trash-line-duotone" style="font-size:1.15em"></span>
+        </button>
+      </div>
     </div>
-    <div class="boutique-grid">
-    <div class="boutique-card" *ngFor="let boutique of boutiques">
-        <div class="card-image">
-        <img [src]="boutique.image" [alt]="boutique.nom" />
-        <div class="badges">
-            <span *ngFor="let badge of boutique.badges" class="badge" [ngClass]="badge.toLowerCase()">{{ badge }}</span>
-        </div>
-        </div>
-        <div class="card-content">
-        <div class="card-title">{{ boutique.nom }}</div>
-        <div class="card-category">{{ boutique.categorie }}</div>
-        <div class="card-rating">
-            <span class="star">★</span> {{ boutique.note }}
-            <span class="reviews">({{ boutique.avis }} reviews)</span>
-        </div>
-        <div class="location-status-row">
-            <span class="card-location">{{ boutique.etage }}</span>
-            <span *ngIf="boutique.statut === 'Ouvert'" class="status-badge ouvert">
-            <span class="dot"></span> Ouvert
-            </span>
-            <span *ngIf="boutique.statut !== 'Ouvert'" class="status-badge ferme">
-            <span class="dot"></span> Fermé
-            </span>
-        </div>
-        <div class="boutique-actions">
-            <button class="view-btn">Voir la boutique</button>
-            <button class="icon-btn edit-btn" title="Modifier">
-            <span class="iconify" data-icon="solar:server-square-update-line-duotone" style="font-size: 1.15em;"></span>
-            </button>
-            <button class="icon-btn delete-btn" title="Supprimer">
-            <span class="iconify" data-icon="solar:trash-bin-trash-line-duotone" style="font-size: 1.15em;"></span>
-            </button>
-        </div>
-        </div>
-    </div>
-    </div>
+
+  </div>
+
+  <div *ngIf="filteredBoutiques.length === 0" class="empty-state">
+    Aucune boutique trouvée.
+  </div>
+</div>
