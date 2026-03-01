@@ -16,3 +16,16 @@
   flex: 1;
   padding: 24px;
 }
+
+/* Responsive */
+@media (max-width: 991px) {
+  .main-content {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .content-wrapper {
+    padding: 16px 12px;
+  }
+}

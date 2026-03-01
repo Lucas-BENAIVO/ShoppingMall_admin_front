@@ -2,9 +2,33 @@
    statistiques.component.scss
    ===================================================== */
 
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f9fafb;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 280px;
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  flex: 1;
+  padding: 24px;
+}
+
+@media (max-width: 991px) {
+  .main-content {
+    margin-left: 0;
+  }
+}
+
 .statistiques-page {
   background: #f9fafb; /* fond original conservé */
-  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;

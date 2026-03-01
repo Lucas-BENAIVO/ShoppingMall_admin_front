@@ -12,4 +12,14 @@ import { FooterComponent } from '../../../components/admin/footer/footer.compone
   templateUrl: './commandes.page.html',
   styleUrls: ['./commandes.page.scss']
 })
-export class CommandesPageComponent {}
+export class CommandesPageComponent {
+  sidebarOpen = false;
+  
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+  
+  closeSidebar(): void {
+    this.sidebarOpen = false;
+  }
+}

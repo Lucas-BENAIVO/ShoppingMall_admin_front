@@ -1,114 +1,49 @@
 <div class="auth-container">
-
-  <!-- Left Panel - Image / Testimonial -->
-  <div 
-    class="auth-right"
-    style="
-      background-image: url('/assets/images/backgrounds/free.jpg');
-      background-size: cover;
-      background-position: center 70%;
-      background-repeat: no-repeat;
-    "
-  >
+  <!-- Left Panel - Testimonial -->
+  <div class="auth-right" style="background-image: url('/assets/images/backgrounds/free.jpg'); background-size: cover; background-position: center 70%; background-repeat: no-repeat; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;">
     <div class="testimonial-content">
       <div class="testimonial-stars">★★★★★</div>
-
+      
       <p class="testimonial-quote">
         "Nous adorons utiliser cette plateforme ! L'expérience d'achat est simple et agréable."
       </p>
-
+      
       <div class="testimonial-author">Marie Dubois</div>
-      <div class="testimonial-position">
-        Fondatrice, StyleHub, Agence de Mode en ligne
-      </div>
+      <div class="testimonial-position">Fondatrice, StyleHub, Agence de Mode en ligne</div>
     </div>
   </div>
 
-  <!-- Right Panel - Login Form -->
+  <!-- Right Panel - Form -->
   <div class="auth-left">
-
-    <!-- ERROR DIALOG -->
-    <div class="error-dialog-backdrop" *ngIf="errorMessage" (click)="errorMessage = ''">
-      <div class="error-dialog" (click)="$event.stopPropagation()">
-        <div class="error-dialog-icon">⚠️</div>
-        <div class="error-dialog-body">
-          <p class="error-dialog-title">Connexion échouée</p>
-          <p class="error-dialog-message">{{ errorMessage }}</p>
-        </div>
-        <button class="error-dialog-close" (click)="errorMessage = ''">✕</button>
-      </div>
-    </div>
-
-    <div class="auth-title">Bienvenue</div>
-    <div class="auth-subtitle">
-      Veuillez entrer vos informations.
-    </div>
+    <div class="auth-title">Administration</div>
+    <div class="auth-subtitle">Connectez-vous à votre espace administrateur.</div>
 
     <form [formGroup]="form" (ngSubmit)="submit()">
-
-      <!-- EMAIL -->
       <div class="form-group">
         <label class="form-label">Email</label>
-        <input
-          type="email"
-          class="form-input"
-          placeholder="Entrez votre email"
-          formControlName="uname"
-        />
-        <small class="error"
-          *ngIf="f.uname.touched && f.uname.invalid">
-          Email invalide
-        </small>
+        <input type="email" class="form-input" placeholder="Entrez votre email" formControlName="email" />
       </div>
 
-      <!-- PASSWORD -->
       <div class="form-group">
         <label class="form-label">Mot de passe</label>
-        <input
-          type="password"
-          class="form-input"
-          placeholder="••••••••"
-          formControlName="password"
-        />
-        <small class="error"
-          *ngIf="f.password.touched && f.password.invalid">
-          Mot de passe requis
-        </small>
+        <input type="password" class="form-input" placeholder="••••••••" formControlName="password" />
       </div>
 
-      <!-- OPTIONS -->
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
       <div class="form-options">
         <div class="checkbox-wrapper">
           <input type="checkbox" id="remember" />
           <label for="remember">Se souvenir pendant 30 jours</label>
         </div>
-        <a [routerLink]="['/']" class="forgot-link">
-          Mot de passe oublié ?
-        </a>
       </div>
 
-      <!-- SUBMIT BUTTON -->
-      <button
-        type="submit"
-        class="btn-signin"
-        [disabled]="loading || form.invalid"
-      >
-        {{ loading ? 'Connexion...' : 'Se connecter' }}
+      <button type="submit" class="btn-signin" [disabled]="isLoading">
+        <span *ngIf="!isLoading">Se connecter</span>
+        <span *ngIf="isLoading">Connexion en cours...</span>
       </button>
-
-      <!-- GOOGLE BUTTON -->
-      <button type="button" class="btn-google">
-        Se connecter avec Google
-      </button>
-
-      <!-- SIGNUP -->
-      <div class="signup-link">
-        Vous n'avez pas de compte ?
-        <a [routerLink]="['/authentication/register']">
-          Inscrivez-vous gratuitement
-        </a>
-      </div>
-
     </form>
   </div>
 </div>

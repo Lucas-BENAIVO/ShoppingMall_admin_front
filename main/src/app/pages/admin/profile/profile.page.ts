@@ -11,4 +11,14 @@ import { FooterComponent } from '../../../components/admin/footer/footer.compone
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss']
 })
-export class ProfilePageComponent {}
+export class ProfilePageComponent {
+  sidebarOpen = false;
+  
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+  
+  closeSidebar(): void {
+    this.sidebarOpen = false;
+  }
+}

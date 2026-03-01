@@ -12,4 +12,14 @@ import { FooterComponent } from '../../../components/admin/footer/footer.compone
   templateUrl: './promotions.page.html',
   styleUrls: ['./promotions.page.scss']
 })
-export class PromotionsPageComponent {} 
+export class PromotionsPageComponent {
+  sidebarOpen = false;
+  
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+  
+  closeSidebar(): void {
+    this.sidebarOpen = false;
+  }
+} 

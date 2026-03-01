@@ -21,7 +21,7 @@ export class AuthInterceptor implements HttpInterceptor {
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
 
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('adminAccessToken');
 
     // Ajouter le token à la requête si présent
     if (token) {
@@ -36,7 +36,7 @@ export class AuthInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
 
         if (error.status === 401) {
-          const refreshToken = localStorage.getItem('refreshToken');
+          const refreshToken = localStorage.getItem('adminRefreshToken');
 
           if (!refreshToken) {
             this.logout();
@@ -45,13 +45,13 @@ export class AuthInterceptor implements HttpInterceptor {
 
           // Appel API pour refresh le token
           return this.http.post<any>(
-            `${environment.apiNodeUrl}/api/auth/refresh`,
+            `${environment.apiNodeUrl}/api/mall/auth/refresh`,
             { refreshToken }
           ).pipe(
             switchMap(data => {
-              localStorage.setItem('accessToken', data.accessToken);
+              localStorage.setItem('adminAccessToken', data.accessToken);
               if (data.refreshToken) {
-                localStorage.setItem('refreshToken', data.refreshToken);
+                localStorage.setItem('adminRefreshToken', data.refreshToken);
               }
 
               // Rejouer la requête initiale avec le nouveau token
@@ -76,7 +76,9 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private logout(): void {
-    localStorage.clear();
-    window.location.href = '/login';
+    localStorage.removeItem('adminAccessToken');
+    localStorage.removeItem('adminRefreshToken');
+    localStorage.removeItem('adminUser');
+    window.location.href = '/authentication/login';
   }
 }

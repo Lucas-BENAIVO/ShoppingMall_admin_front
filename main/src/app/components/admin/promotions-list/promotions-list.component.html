@@ -1,57 +1,75 @@
 <div class="promotions-list-container">
   <div class="promotions-list-header">
-    <h2>Gestion des promotions</h2>
+    <h2>Gestion des promotions globales</h2>
     <div class="promotions-list-actions">
-      <button class="add-btn" (click)="openAddForm()">Ajouter une promotion</button>
-      <select class="filter-select" [(ngModel)]="selectedType">
-        <option value="">Tous types</option>
-        <option value="Code promo">Code promo</option>
-        <option value="Carte fidélité">Carte de fidélité</option>
-        <option value="Promotion globale">Promotion globale (ex: Black Friday, Soldes)</option>
+      <div class="search-box">
+        <input type="text" [(ngModel)]="searchQuery" (input)="onSearch()" placeholder="Rechercher une promotion..." />
+      </div>
+      <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+        <option value="all">Tous les statuts</option>
+        <option value="Actif">Actif</option>
+        <option value="À venir">À venir</option>
+        <option value="Expiré">Expiré</option>
       </select>
+      <select class="filter-select" [(ngModel)]="sortBy" (change)="onFilterChange()">
+        <option value="date-desc">Plus récent</option>
+        <option value="date-asc">Plus ancien</option>
+        <option value="discount-desc">Réduction ↓</option>
+        <option value="discount-asc">Réduction ↑</option>
+      </select>
+      <button class="add-btn" (click)="openAddModal()">+ Ajouter</button>
     </div>
   </div>
 
-  <table class="promotions-table">
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">
+    <p>Chargement des promotions...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && filteredPromotions.length === 0" class="empty-state">
+    <p>Aucune promotion trouvée</p>
+  </div>
+
+  <!-- Table -->
+  <table *ngIf="!loading && filteredPromotions.length > 0" class="promotions-table">
     <thead>
       <tr>
-        <th>Type</th>
-        <th>Nom</th>
-        <th>Valeur</th>
+        <th>Titre</th>
+        <th>Réduction</th>
+        <th>Date début</th>
+        <th>Date fin</th>
         <th>Statut</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let promo of filteredPromotions">
+      <tr *ngFor="let promo of paginatedPromotions">
         <td>
           <div class="promo-info">
             <div class="promo-avatar">
-              <span class="iconify" 
-                [attr.data-icon]="promo.type === 'Code promo' ? 'solar:tag-price-bold-duotone' : 'solar:card-bold-duotone'"
-                style="font-size: 1.4em;">
-              </span>
+              <span class="iconify" data-icon="solar:tag-price-bold-duotone" style="font-size: 1.4em;"></span>
             </div>
             <div>
-              <div class="promo-nom">{{ promo.nom }}</div>
-              <div class="promo-type">{{ promo.type }}</div>
+              <div class="promo-nom">{{ promo.title }}</div>
             </div>
           </div>
         </td>
-        <td>{{ promo.nom }}</td>
-        <td><b>{{ promo.valeur }}</b></td>
+        <td><b>{{ promo.discountPercent }}%</b></td>
+        <td>{{ formatDate(promo.startDate) }}</td>
+        <td>{{ formatDate(promo.endDate) }}</td>
         <td>
           <span class="status" [ngClass]="{
-            'actif': promo.statut === 'Actif',
-            'inactif': promo.statut === 'Inactif',
-            'expire': promo.statut === 'Expiré'
-          }">{{ promo.statut }}</span>
+            'actif': promo.status === 'Actif',
+            'a-venir': promo.status === 'À venir',
+            'expire': promo.status === 'Expiré'
+          }">{{ promo.status }}</span>
         </td>
         <td>
-          <button class="edit-btn" (click)="openEditForm(promo)">
-          <span class="iconify" data-icon="solar:server-square-update-line-duotone" style="font-size: 1.15em;"></span>
+          <button class="edit-btn" (click)="openEditModal(promo)" title="Modifier">
+            <span class="iconify" data-icon="solar:server-square-update-line-duotone" style="font-size: 1.15em;"></span>
           </button>
-          <button class="delete-btn" (click)="deletePromotion(promo.id)">
+          <button class="delete-btn" (click)="confirmDelete(promo)" title="Supprimer">
             <span class="iconify" data-icon="solar:trash-bin-trash-line-duotone" style="font-size: 1.3em;"></span>
           </button>
         </td>
@@ -59,22 +77,53 @@
     </tbody>
   </table>
 
-  <div class="promotions-pagination">
-    <button class="pagination-btn">Previous</button>
-    <button class="pagination-btn active">1</button>
-    <button class="pagination-btn">2</button>
-    <button class="pagination-btn">3</button>
-    <button class="pagination-btn">Next</button>
+  <!-- Pagination -->
+  <div class="promotions-pagination" *ngIf="!loading && totalPages > 1">
+    <button class="pagination-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Précédent</button>
+    <button *ngFor="let page of getPageNumbers()" class="pagination-btn" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
+    <button class="pagination-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Suivant</button>
+  </div>
+  <div class="pagination-info" *ngIf="!loading && filteredPromotions.length > 0">
+    Affichage {{ (currentPage - 1) * pageSize + 1 }}-{{ currentPage * pageSize > filteredPromotions.length ? filteredPromotions.length : currentPage * pageSize }} sur {{ filteredPromotions.length }} promotions
   </div>
 
-  <div *ngIf="showForm" class="modal-overlay">
+  <!-- Modal Add/Edit -->
+  <div *ngIf="showModal" class="modal-overlay">
     <div class="modal-content">
-      <app-promotions-form
-        [promotion]="editPromotion"
-        (save)="onSavePromotion($event)"
-        (cancel)="closeForm()">
-      </app-promotions-form>
+      <h3>{{ isEditing ? 'Modifier la promotion' : 'Ajouter une promotion' }}</h3>
+      <form (ngSubmit)="savePromotion()">
+        <label>Titre</label>
+        <input [(ngModel)]="formData.title" name="title" placeholder="Ex: Black Friday, Soldes..." required />
+
+        <label>Réduction (%)</label>
+        <input [(ngModel)]="formData.discountPercent" name="discountPercent" type="number" min="1" max="100" required />
+
+        <label>Date de début</label>
+        <input [(ngModel)]="formData.startDate" name="startDate" type="date" required />
+
+        <label>Date de fin</label>
+        <input [(ngModel)]="formData.endDate" name="endDate" type="date" required />
+
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="submit-btn">{{ isEditing ? 'Enregistrer' : 'Ajouter' }}</button>
+        </div>
+      </form>
     </div>
-    <div class="modal-backdrop" (click)="closeForm()"></div>
+    <div class="modal-backdrop" (click)="closeModal()"></div>
+  </div>
+
+  <!-- Modal Delete -->
+  <div *ngIf="showDeleteModal" class="modal-overlay">
+    <div class="modal-content delete-modal">
+      <h3>Confirmer la suppression</h3>
+      <p>Êtes-vous sûr de vouloir supprimer la promotion <strong>{{ selectedPromotion?.title }}</strong> ?</p>
+      <p class="warning-text">Cette action est irréversible.</p>
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" (click)="closeModal()">Annuler</button>
+        <button type="button" class="delete-confirm-btn" (click)="deletePromotion()">Supprimer</button>
+      </div>
+    </div>
+    <div class="modal-backdrop" (click)="closeModal()"></div>
   </div>
 </div>

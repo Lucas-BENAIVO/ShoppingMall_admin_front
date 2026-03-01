@@ -1,0 +1,153 @@
+<div class="stock-list-container">
+  <div class="stock-list-header">
+    <h2>Gestion des stocks</h2>
+    <div class="stock-list-actions">
+      <select class="filter-select" [(ngModel)]="selectedBoutiqueId" (change)="onBoutiqueChange()">
+        <option *ngFor="let boutique of boutiques" [value]="boutique._id">{{ boutique.nom }}</option>
+      </select>
+      <div class="search-box">
+        <input type="text" placeholder="Rechercher un produit..." [(ngModel)]="searchTerm" (input)="applyFilters()">
+      </div>
+      <select class="filter-select" [(ngModel)]="filterStatus" (change)="applyFilters()">
+        <option value="all">Tous les produits</option>
+        <option value="ok">En stock</option>
+        <option value="low">Stock bas</option>
+        <option value="out">Rupture</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="isLoading">Chargement des stocks...</div>
+
+  <div class="empty-state" *ngIf="!isLoading && filteredStocks.length === 0">
+    Aucun produit trouvé
+  </div>
+
+  <div class="stocks-table-wrapper" *ngIf="!isLoading && filteredStocks.length > 0">
+    <table class="stocks-table">
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th>Quantité</th>
+          <th>Seuil d'alerte</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let stock of paginatedStocks">
+          <td>
+            <div class="product-info">
+              <div class="product-avatar" *ngIf="!getProductImage(stock)">
+                <mat-icon>inventory_2</mat-icon>
+              </div>
+              <img *ngIf="getProductImage(stock)" [src]="getProductImage(stock)" class="product-img" alt="">
+              <div>
+                <div class="product-name">{{ stock.product.name }}</div>
+                <div class="product-price">{{ stock.product.price | number:'1.0-0' }} Ar</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="quantity" [class.low]="stock.quantity <= stock.alertThreshold" [class.out]="stock.quantity === 0">
+              {{ stock.quantity }}
+            </span>
+          </td>
+          <td>{{ stock.alertThreshold }}</td>
+          <td>
+            <span class="status" [ngClass]="getStockStatusClass(stock)">{{ getStockStatus(stock) }}</span>
+          </td>
+          <td>
+            <button class="edit-btn" (click)="openEditModal(stock)" title="Modifier">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button class="history-btn" (click)="openHistoryModal(stock)" title="Historique">
+              <mat-icon>history</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="stocks-pagination" *ngIf="!isLoading && totalPages > 1">
+    <button class="pagination-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Précédent</button>
+    <button *ngFor="let page of getPageNumbers()" class="pagination-btn" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
+    <button class="pagination-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Suivant</button>
+  </div>
+  <div class="pagination-info" *ngIf="!isLoading && filteredStocks.length > 0">
+    Affichage {{ (currentPage - 1) * pageSize + 1 }}-{{ currentPage * pageSize > filteredStocks.length ? filteredStocks.length : currentPage * pageSize }} sur {{ filteredStocks.length }} produits
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" *ngIf="showEditModal">
+  <div class="modal-backdrop" (click)="closeEditModal()"></div>
+  <div class="modal-content">
+    <h3>Modifier le stock</h3>
+    <div class="product-header" *ngIf="editingStock">
+      <strong>{{ editingStock.product.name }}</strong>
+    </div>
+    
+    <form (ngSubmit)="saveStock()">
+      <label>Type de mouvement</label>
+      <select [(ngModel)]="editForm.type" name="type">
+        <option value="ENTREE">Entrée</option>
+        <option value="SORTIE">Sortie</option>
+        <option value="AJUSTEMENT">Ajustement</option>
+      </select>
+      
+      <label>Nouvelle quantité</label>
+      <input type="number" [(ngModel)]="editForm.quantity" name="quantity" min="0" required>
+      
+      <label>Seuil d'alerte</label>
+      <input type="number" [(ngModel)]="editForm.alertThreshold" name="alertThreshold" min="0">
+      
+      <label>Raison (optionnel)</label>
+      <input type="text" [(ngModel)]="editForm.reason" name="reason" placeholder="Ex: Réapprovisionnement">
+      
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" (click)="closeEditModal()">Annuler</button>
+        <button type="submit" class="submit-btn">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- History Modal -->
+<div class="modal-overlay" *ngIf="showHistoryModal">
+  <div class="modal-backdrop" (click)="closeHistoryModal()"></div>
+  <div class="modal-content history-modal">
+    <h3>Historique des mouvements</h3>
+    <div class="product-header" *ngIf="historyProduct">
+      <strong>{{ historyProduct.product.name }}</strong>
+    </div>
+    
+    <div class="loading-state" *ngIf="loadingHistory">Chargement...</div>
+    
+    <div class="empty-state" *ngIf="!loadingHistory && transactions.length === 0">
+      Aucun mouvement enregistré
+    </div>
+    
+    <div class="transactions-list" *ngIf="!loadingHistory && transactions.length > 0">
+      <div class="transaction-item" *ngFor="let t of transactions">
+        <div class="transaction-type" [ngClass]="getTransactionTypeClass(t.type)">
+          {{ getTransactionTypeLabel(t.type) }}
+        </div>
+        <div class="transaction-details">
+          <div class="transaction-qty">
+            {{ t.type === 'ENTREE' || t.type === 'RETOUR' ? '+' : '-' }}{{ t.quantity }}
+          </div>
+          <div class="transaction-stock">{{ t.previousStock }} → {{ t.newStock }}</div>
+          <div class="transaction-reason" *ngIf="t.reason">{{ t.reason }}</div>
+        </div>
+        <div class="transaction-date">{{ formatDate(t.createdAt) }}</div>
+      </div>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" class="cancel-btn" (click)="closeHistoryModal()">Fermer</button>
+    </div>
+  </div>
+</div>

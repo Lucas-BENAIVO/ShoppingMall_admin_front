@@ -184,3 +184,74 @@
   background: rgba(0,0,0,0.2);
   z-index: 1000;
 }
+
+/* Responsive */
+@media (max-width: 991px) {
+  .commandes-list-container {
+    padding: 18px 12px;
+    border-radius: 12px;
+  }
+
+  .commandes-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    h2 {
+      font-size: 1.05rem;
+    }
+  }
+
+  .commandes-list-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .commandes-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    th, td {
+      padding: 10px 8px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+  }
+
+  .commande-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .status {
+    padding: 3px 8px;
+    font-size: 0.8rem;
+  }
+
+  .edit-btn, .delete-btn {
+    padding: 5px 8px;
+    font-size: 0.95rem;
+  }
+
+  .commandes-pagination {
+    justify-content: center;
+  }
+
+  .modal-content {
+    padding: 20px;
+    width: 90vw;
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 575px) {
+  .commandes-list-container {
+    padding: 14px 10px;
+  }
+
+  .commandes-list-header h2 {
+    font-size: 0.95rem;
+  }
+}

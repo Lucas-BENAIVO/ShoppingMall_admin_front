@@ -1,75 +1,72 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Boutique {
   _id: string;
   name: string;
-  description: string;
-  logo: string;
+  description?: string;
+  logo?: string;
   ownerId: string;
   isValidated: boolean;
   createdAt: string;
+  updatedAt: string;
+  // Données enrichies
+  ownerName?: string;
+  productsCount?: number;
+  revenue?: number;
 }
 
-interface ApiResponse<T> {
+export interface BoutiqueResponse {
   success: boolean;
   count?: number;
-  data: T;
+  data: Boutique | Boutique[];
+  message?: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class BoutiqueService {
-  private readonly apiUrl = 'http://localhost:3000/api/mall/boutiques';
-
-  // Headers pour bypasser le cache navigateur
-  private readonly noCache = {
-    headers: new HttpHeaders({
-      'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache'
-    })
-  };
+  private readonly apiUrl = `${environment.apiNodeUrl}/api/mall/boutiques`;
 
   constructor(private http: HttpClient) {}
 
-  getAllBoutiques(): Observable<Boutique[]> {
-    return this.http.get<ApiResponse<Boutique[]>>(this.apiUrl, this.noCache).pipe(
-      map(res => res?.data ?? [])
-    );
+  getAllBoutiques(): Observable<BoutiqueResponse> {
+    return this.http.get<BoutiqueResponse>(this.apiUrl);
   }
 
-  getAllValidatedBoutiques(): Observable<Boutique[]> {
-    return this.http.get<ApiResponse<Boutique[]>>(`${this.apiUrl}/validated`, this.noCache).pipe(
-      map(res => res?.data ?? [])
-    );
+  getValidatedBoutiques(): Observable<BoutiqueResponse> {
+    return this.http.get<BoutiqueResponse>(`${this.apiUrl}/validated`);
   }
 
-  searchBoutiqueByName(name: string): Observable<Boutique[]> {
-    return this.http.get<ApiResponse<Boutique[]>>(`${this.apiUrl}/search`, {
-      params: { name },
-      headers: this.noCache.headers
-    }).pipe(
-      map(res => res?.data ?? [])
-    );
+  getBoutiqueById(id: string): Observable<BoutiqueResponse> {
+    return this.http.get<BoutiqueResponse>(`${this.apiUrl}/${id}`);
   }
 
-  createBoutique(data: Partial<Boutique>): Observable<Boutique> {
-    return this.http.post<ApiResponse<Boutique>>(this.apiUrl, data).pipe(
-      map(res => res.data)
-    );
+  searchBoutiques(name: string): Observable<BoutiqueResponse> {
+    const params = new HttpParams().set('name', name);
+    return this.http.get<BoutiqueResponse>(`${this.apiUrl}/search`, { params });
   }
 
-  validateBoutique(id: string): Observable<Boutique> {
-    return this.http.patch<ApiResponse<Boutique>>(`${this.apiUrl}/${id}/validate`, {}).pipe(
-      map(res => res.data)
-    );
+  createBoutique(data: Partial<Boutique>): Observable<BoutiqueResponse> {
+    return this.http.post<BoutiqueResponse>(this.apiUrl, data);
   }
 
-  suspendBoutique(id: string): Observable<Boutique> {
-    return this.http.patch<ApiResponse<Boutique>>(`${this.apiUrl}/${id}/suspend`, {}).pipe(
-      map(res => res.data)
-    );
+  updateBoutique(id: string, data: Partial<Boutique>): Observable<BoutiqueResponse> {
+    return this.http.put<BoutiqueResponse>(`${this.apiUrl}/${id}`, data);
+  }
+
+  validateBoutique(id: string): Observable<BoutiqueResponse> {
+    return this.http.put<BoutiqueResponse>(`${this.apiUrl}/${id}/validate`, {});
+  }
+
+  suspendBoutique(id: string): Observable<BoutiqueResponse> {
+    return this.http.put<BoutiqueResponse>(`${this.apiUrl}/${id}/suspend`, {});
+  }
+
+  deleteBoutique(id: string): Observable<BoutiqueResponse> {
+    return this.http.delete<BoutiqueResponse>(`${this.apiUrl}/${id}`);
   }
 }

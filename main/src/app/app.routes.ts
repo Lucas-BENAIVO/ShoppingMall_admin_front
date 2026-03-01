@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { BlankComponent } from './layouts/blank/blank.component';
 import { FullComponent } from './layouts/full/full.component';
+import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -39,6 +40,7 @@ export const routes: Routes = [
         path: 'admin',
         loadChildren: () =>
           import('./pages/admin/boutique.routes').then((m) => m.BoutiqueRoutes),
+        canActivate: [AuthGuard]
       },
       {
         path: 'authentication',
@@ -51,6 +53,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'authentication/error',
+    redirectTo: 'authentication/login',
   },
 ];

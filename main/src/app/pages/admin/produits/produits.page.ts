@@ -12,4 +12,14 @@ import { FooterComponent } from '../../../components/admin/footer/footer.compone
   ,
   imports: [ProduitsListComponent, SidebarComponent, BoutiqueNavbarComponent, FooterComponent]
 })
-export class ProduitsPage {}
+export class ProduitsPage {
+  sidebarOpen = false;
+  
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+  
+  closeSidebar(): void {
+    this.sidebarOpen = false;
+  }
+}

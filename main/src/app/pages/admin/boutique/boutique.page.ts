@@ -12,4 +12,14 @@ import { BoutiqueNavbarComponent } from '../../../components/admin/boutique-navb
   templateUrl: './boutique.page.html',
   styleUrls: ['./boutique.page.scss']
 })
-export class BoutiquePage {}
+export class BoutiquePage {
+  sidebarOpen = false;
+  
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+  
+  closeSidebar(): void {
+    this.sidebarOpen = false;
+  }
+}

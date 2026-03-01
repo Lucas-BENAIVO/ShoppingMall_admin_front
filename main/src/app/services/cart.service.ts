@@ -128,7 +128,7 @@ export class CartService {
 
   getShipping(): number {
     const subtotal = this.getSubtotal();
-    return subtotal > 50 ? 0 : 0; // Livraison gratuite au-dessus de 50€
+    return subtotal > 50 ? 0 : 0; // Livraison gratuite au-dessus de 50 000 Ar
   }
 
   getTax(): number {

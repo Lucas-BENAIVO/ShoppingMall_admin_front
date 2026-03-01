@@ -1,0 +1,89 @@
+<div class="profile-card">
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">
+    <p>Chargement du profil...</p>
+  </div>
+
+  <!-- Profile Content -->
+  <ng-container *ngIf="!loading && user">
+    <div class="profile-avatar-section">
+      <div class="profile-avatar">
+        <span class="iconify" data-icon="solar:user-bold" style="font-size: 4em; color: #888;"></span>
+      </div>
+      <div class="role-badge">{{ getRoleLabel(user.role) }}</div>
+    </div>
+
+    <div class="profile-info-section">
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <!-- View Mode -->
+      <ng-container *ngIf="!isEditing">
+        <div class="profile-info-row">
+          <strong>Nom :</strong>
+          <span>{{ user.fullName }}</span>
+        </div>
+        <div class="profile-info-row">
+          <strong>Email :</strong>
+          <span>{{ user.email }}</span>
+        </div>
+        <div class="profile-info-row">
+          <strong>Téléphone :</strong>
+          <span>{{ formData.phone || '-' }}</span>
+        </div>
+        <button class="profile-edit-btn" (click)="enableEditing()">
+          <span class="iconify" data-icon="solar:pen-bold" style="font-size: 1em;"></span> Modifier le profil
+        </button>
+      </ng-container>
+
+      <!-- Edit Mode -->
+      <ng-container *ngIf="isEditing">
+        <form (ngSubmit)="saveProfile()">
+          <div class="profile-info-row">
+            <label>Nom :</label>
+            <input class="profile-input" type="text" [(ngModel)]="formData.fullName" name="fullName" required />
+          </div>
+          <div class="profile-info-row">
+            <label>Email :</label>
+            <input class="profile-input" type="email" [(ngModel)]="formData.email" name="email" required />
+          </div>
+          <div class="profile-info-row">
+            <label>Téléphone :</label>
+            <input class="profile-input" type="text" [(ngModel)]="formData.phone" name="phone" placeholder="+261 XX XXX XX" />
+          </div>
+
+          <div class="password-section">
+            <h4>Changer le mot de passe (optionnel)</h4>
+            <div class="profile-info-row">
+              <label>Nouveau mot de passe :</label>
+              <input class="profile-input" type="password" [(ngModel)]="formData.newPassword" name="newPassword" placeholder="Laisser vide pour ne pas changer" />
+            </div>
+            <div class="profile-info-row" *ngIf="formData.newPassword">
+              <label>Confirmer :</label>
+              <input class="profile-input" type="password" [(ngModel)]="formData.confirmPassword" name="confirmPassword" />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="cancel-btn" (click)="cancelEditing()" [disabled]="saving">Annuler</button>
+            <button type="submit" class="save-btn" [disabled]="saving">
+              {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+            </button>
+          </div>
+        </form>
+      </ng-container>
+    </div>
+  </ng-container>
+
+  <!-- No User -->
+  <div *ngIf="!loading && !user" class="empty-state">
+    <p>Utilisateur non trouvé</p>
+  </div>
+</div>

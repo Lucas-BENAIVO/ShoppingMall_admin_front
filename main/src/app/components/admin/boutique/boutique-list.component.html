@@ -1,85 +1,158 @@
-<div class="boutique-list-header">
-  <div class="filters">
-    <input
-      type="text"
-      placeholder="Rechercher une boutique..."
-      [value]="searchQuery"
-      (input)="onSearchChange($any($event.target).value)"
-    />
-    <button class="filter-btn" (click)="loadBoutiques()">Actualiser</button>
+<div class="boutique-list-container">
+  <div class="boutique-list-header">
+    <div class="filters">
+      <input type="text" 
+             [(ngModel)]="searchQuery" 
+             (input)="onSearch()"
+             placeholder="Rechercher une boutique..." />
+      <select [(ngModel)]="statusFilter" (change)="onStatusFilterChange()">
+        <option value="all">Tous les statuts</option>
+        <option value="validated">Validées</option>
+        <option value="pending">En attente</option>
+      </select>
+      <select [(ngModel)]="sortBy" (change)="onSortChange()">
+        <option value="date-desc">Plus récentes</option>
+        <option value="date-asc">Plus anciennes</option>
+        <option value="name-asc">Nom A-Z</option>
+        <option value="name-desc">Nom Z-A</option>
+      </select>
+    </div>
+    <div class="results-count">
+      <span class="count-strong">{{ filteredBoutiques.length }} boutiques</span> référencées
+    </div>
   </div>
-  <div class="results-count">
-    <span class="count-strong">{{ filteredBoutiques.length }} boutiques</span> référencées
+
+  <div *ngIf="loading" class="loading-state">
+    <p>Chargement des boutiques...</p>
   </div>
-</div>
-<!-- Chargement -->
-<div *ngIf="isLoading" class="loading-state">
-  Chargement des boutiques...
-</div>
 
-<!-- Erreur -->
-<div *ngIf="errorMessage && !isLoading" class="error-state">
-  <span>{{ errorMessage }}</span>
-  <button (click)="loadBoutiques()">Réessayer</button>
-</div>
+  <div *ngIf="!loading && filteredBoutiques.length === 0" class="empty-state">
+    <p>Aucune boutique trouvée</p>
+  </div>
 
-<!-- Grille -->
-<div class="boutique-grid" *ngIf="!isLoading && !errorMessage">
-  <div class="boutique-card" *ngFor="let boutique of filteredBoutiques">
-
-    <div class="card-image">
-      <img [src]="getLogoUrl(boutique.logo)" [alt]="boutique.name" />
-      <div class="badges">
-        <span class="badge verifie" *ngIf="boutique.isValidated">VÉRIFIÉ</span>
-        <span class="badge non-valide" *ngIf="!boutique.isValidated">EN ATTENTE</span>
+  <div class="boutique-grid" *ngIf="!loading">
+    <div class="boutique-card" *ngFor="let boutique of paginatedBoutiques">
+      <div class="card-image">
+        <img [src]="boutique.image" [alt]="boutique.nom" (error)="onImageError($event)" />
+        <div class="badges">
+          <span *ngIf="boutique.isValidated" class="badge verified">VALIDÉE</span>
+          <span *ngIf="!boutique.isValidated" class="badge pending">EN ATTENTE</span>
+        </div>
+      </div>
+      <div class="card-content">
+        <div class="card-title">{{ boutique.nom }}</div>
+        <div class="card-category">{{ boutique.description || 'Pas de description' }}</div>
+        <div class="card-date">
+          <span class="iconify" data-icon="solar:calendar-linear"></span>
+          Créée le {{ formatDate(boutique.createdAt) }}
+        </div>
+        <div class="location-status-row">
+          <span *ngIf="boutique.isValidated" class="status-badge ouvert">
+            <span class="dot"></span> Validée
+          </span>
+          <span *ngIf="!boutique.isValidated" class="status-badge ferme">
+            <span class="dot"></span> En attente
+          </span>
+        </div>
+        <div class="boutique-actions">
+          <button class="view-btn" (click)="viewBoutique(boutique)">Voir la boutique</button>
+          <button class="icon-btn edit-btn" title="Modifier" (click)="editBoutique(boutique)">
+            <span class="iconify" data-icon="solar:server-square-update-line-duotone" style="font-size: 1.15em;"></span>
+          </button>
+          <button class="icon-btn delete-btn" title="Supprimer" (click)="confirmDeleteBoutique(boutique)">
+            <span class="iconify" data-icon="solar:trash-bin-trash-line-duotone" style="font-size: 1.15em;"></span>
+          </button>
+        </div>
+        <div class="validation-actions" *ngIf="!boutique.isValidated">
+          <button class="validate-btn" (click)="validateBoutique(boutique)">
+            <span class="iconify" data-icon="solar:check-circle-bold"></span> Valider
+          </button>
+        </div>
+        <div class="validation-actions" *ngIf="boutique.isValidated">
+          <button class="suspend-btn" (click)="suspendBoutique(boutique)">
+            <span class="iconify" data-icon="solar:close-circle-bold"></span> Suspendre
+          </button>
+        </div>
       </div>
     </div>
+  </div>
 
-    <div class="card-content">
-      <div class="card-title">{{ boutique.name }}</div>
-      <div class="card-category">{{ boutique.description }}</div>
+  <!-- Pagination -->
+  <div class="boutique-pagination" *ngIf="!loading && totalPages > 1">
+    <button class="pagination-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Précédent</button>
+    <button *ngFor="let page of getPageNumbers()" class="pagination-btn" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
+    <button class="pagination-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Suivant</button>
+  </div>
+</div>
 
-      <div class="location-status-row">
-        <span class="card-location">Ajouté le {{ formatDate(boutique.createdAt) }}</span>
-        <span class="status-badge" [ngClass]="boutique.isValidated ? 'ouvert' : 'ferme'">
-          <span class="dot"></span>
-          {{ boutique.isValidated ? 'Validé' : 'Suspendu' }}
+<!-- Modal Voir -->
+<div class="modal-backdrop" *ngIf="showViewModal" (click)="closeModals()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Détails de la boutique</h3>
+      <button class="close-btn" (click)="closeModals()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedBoutique">
+      <div class="detail-row">
+        <strong>Nom:</strong> {{ selectedBoutique.nom }}
+      </div>
+      <div class="detail-row">
+        <strong>Description:</strong> {{ selectedBoutique.description || 'Aucune' }}
+      </div>
+      <div class="detail-row">
+        <strong>Statut:</strong> 
+        <span [class.text-success]="selectedBoutique.isValidated" [class.text-warning]="!selectedBoutique.isValidated">
+          {{ selectedBoutique.isValidated ? 'Validée' : 'En attente' }}
         </span>
       </div>
-
-      <div class="boutique-actions">
-        <button class="view-btn">Voir la boutique</button>
-
-        <button
-          *ngIf="!boutique.isValidated"
-          class="icon-btn validate-btn"
-          title="Valider"
-          (click)="validateBoutique(boutique)"
-        >
-          <span class="iconify" data-icon="solar:check-circle-line-duotone" style="font-size:1.15em"></span>
-        </button>
-
-        <button
-          *ngIf="boutique.isValidated"
-          class="icon-btn suspend-btn"
-          title="Suspendre"
-          (click)="suspendBoutique(boutique)"
-        >
-          <span class="iconify" data-icon="solar:pause-circle-line-duotone" style="font-size:1.15em"></span>
-        </button>
-
-        <button class="icon-btn edit-btn" title="Modifier">
-          <span class="iconify" data-icon="solar:server-square-update-line-duotone" style="font-size:1.15em"></span>
-        </button>
-        <button class="icon-btn delete-btn" title="Supprimer">
-          <span class="iconify" data-icon="solar:trash-bin-trash-line-duotone" style="font-size:1.15em"></span>
-        </button>
+      <div class="detail-row">
+        <strong>Date de création:</strong> {{ formatDate(selectedBoutique.createdAt) }}
       </div>
     </div>
-
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModals()">Fermer</button>
+    </div>
   </div>
+</div>
 
-  <div *ngIf="filteredBoutiques.length === 0" class="empty-state">
-    Aucune boutique trouvée.
+<!-- Modal Modifier -->
+<div class="modal-backdrop" *ngIf="showEditModal" (click)="closeModals()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Modifier la boutique</h3>
+      <button class="close-btn" (click)="closeModals()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nom de la boutique</label>
+        <input type="text" [(ngModel)]="editForm.name" class="form-input" />
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="editForm.description" class="form-input" rows="3"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModals()">Annuler</button>
+      <button class="btn-primary" (click)="saveEdit()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Supprimer -->
+<div class="modal-backdrop" *ngIf="showDeleteModal" (click)="closeModals()">
+  <div class="modal-content modal-danger" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirmer la suppression</h3>
+      <button class="close-btn" (click)="closeModals()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p>Êtes-vous sûr de vouloir supprimer la boutique <strong>{{ selectedBoutique?.nom }}</strong> ?</p>
+      <p class="text-danger">Cette action est irréversible.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModals()">Annuler</button>
+      <button class="btn-danger" (click)="deleteBoutique()">Supprimer</button>
+    </div>
   </div>
 </div>

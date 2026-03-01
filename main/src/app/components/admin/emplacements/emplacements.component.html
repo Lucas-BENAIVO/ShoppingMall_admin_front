@@ -1,37 +1,73 @@
-<!-- Ancienne table supprimée pour éviter les balises imbriquées et erreurs de fermeture -->
-<div class="promotions-list-container">
-  <div class="promotions-list-header">
+<div class="emplacements-list-container">
+  <div class="emplacements-list-header">
     <h2>Gestion des emplacements</h2>
-    <div class="promotions-list-actions">
-      <button class="add-btn" (click)="openAddForm()">Ajouter un emplacement</button>
-      <select class="filter-select">
-        <option value="">Toutes les zones</option>
-        <option value="A">Zone A</option>
-        <option value="B">Zone B</option>
-        <option value="C">Zone C</option>
+    <div class="emplacements-list-actions">
+      <div class="search-box">
+        <input type="text" [(ngModel)]="searchQuery" (input)="onSearch()" placeholder="Rechercher..." />
+      </div>
+      <select class="filter-select" [(ngModel)]="selectedZone" (change)="onFilterChange()">
+        <option value="all">Toutes les zones</option>
+        <option *ngFor="let z of zones" [value]="z">Zone {{ z }}</option>
       </select>
+      <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+        <option value="all">Tous les statuts</option>
+        <option value="available">Disponible</option>
+        <option value="occupied">Occupé</option>
+      </select>
+      <select class="filter-select" [(ngModel)]="sortBy" (change)="onFilterChange()">
+        <option value="code-asc">Code A-Z</option>
+        <option value="code-desc">Code Z-A</option>
+        <option value="surface-desc">Surface ↓</option>
+        <option value="rent-desc">Loyer ↓</option>
+      </select>
+      <button class="add-btn" (click)="openAddModal()">+ Ajouter</button>
     </div>
   </div>
 
-  <table class="promotions-table">
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">
+    <p>Chargement des emplacements...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && filteredEmplacements.length === 0" class="empty-state">
+    <p>Aucun emplacement trouvé</p>
+  </div>
+
+  <!-- Table -->
+  <table *ngIf="!loading && filteredEmplacements.length > 0" class="emplacements-table">
     <thead>
       <tr>
+        <th>Code</th>
+        <th>Zone</th>
+        <th>Étage</th>
+        <th>Surface</th>
+        <th>Loyer</th>
         <th>Boutique</th>
-        <th>Position</th>
-        <th>Description</th>
+        <th>Statut</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let e of emplacements">
-        <td>{{ e.boutique }}</td>
-        <td>{{ e.position }}</td>
-        <td>{{ e.description }}</td>
+      <tr *ngFor="let e of paginatedEmplacements">
         <td>
-          <button class="edit-btn" (click)="openEditForm(e)">
+          <div class="code-badge">{{ e.code }}</div>
+        </td>
+        <td>Zone {{ e.zone }}</td>
+        <td>{{ getFloorLabel(e.floor) }}</td>
+        <td>{{ e.surface }} m²</td>
+        <td>{{ formatCurrency(e.rent) }}</td>
+        <td>{{ e.boutiqueName || '-' }}</td>
+        <td>
+          <span class="status" [ngClass]="{ 'available': e.isAvailable, 'occupied': !e.isAvailable }">
+            {{ e.isAvailable ? 'Disponible' : 'Occupé' }}
+          </span>
+        </td>
+        <td>
+          <button class="edit-btn" (click)="openEditModal(e)" title="Modifier">
             <span class="iconify" data-icon="solar:server-square-update-line-duotone" style="font-size: 1.15em;"></span>
           </button>
-          <button class="delete-btn" (click)="deleteEmplacement(e.id!)">
+          <button class="delete-btn" (click)="confirmDelete(e)" title="Supprimer">
             <span class="iconify" data-icon="solar:trash-bin-trash-line-duotone" style="font-size: 1.3em;"></span>
           </button>
         </td>
@@ -39,22 +75,72 @@
     </tbody>
   </table>
 
-  <div class="promotions-pagination">
-    <button class="pagination-btn">Précédent</button>
-    <button class="pagination-btn active">1</button>
-    <button class="pagination-btn">2</button>
-    <button class="pagination-btn">3</button>
-    <button class="pagination-btn">Suivant</button>
+  <!-- Pagination -->
+  <div class="emplacements-pagination" *ngIf="!loading && totalPages > 1">
+    <button class="pagination-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Précédent</button>
+    <button *ngFor="let page of getPageNumbers()" class="pagination-btn" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
+    <button class="pagination-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Suivant</button>
+  </div>
+  <div class="pagination-info" *ngIf="!loading && filteredEmplacements.length > 0">
+    Affichage {{ (currentPage - 1) * pageSize + 1 }}-{{ currentPage * pageSize > filteredEmplacements.length ? filteredEmplacements.length : currentPage * pageSize }} sur {{ filteredEmplacements.length }} emplacements
   </div>
 
-  <div *ngIf="showForm" class="modal-overlay">
+  <!-- Modal Add/Edit -->
+  <div *ngIf="showModal" class="modal-overlay">
     <div class="modal-content">
-      <app-emplacement-form
-        [emplacement]="editEmplacement"
-        (save)="onSaveEmplacement($event)"
-        (cancel)="closeForm()">
-      </app-emplacement-form>
+      <h3>{{ isEditing ? 'Modifier l\'emplacement' : 'Ajouter un emplacement' }}</h3>
+      <form (ngSubmit)="saveEmplacement()">
+        <label>Code</label>
+        <input [(ngModel)]="formData.code" name="code" placeholder="Ex: A1, B2..." required />
+
+        <label>Zone</label>
+        <select [(ngModel)]="formData.zone" name="zone" required>
+          <option *ngFor="let z of zones" [value]="z">Zone {{ z }}</option>
+        </select>
+
+        <label>Étage</label>
+        <select [(ngModel)]="formData.floor" name="floor">
+          <option [value]="0">RDC</option>
+          <option [value]="1">1er étage</option>
+          <option [value]="2">2ème étage</option>
+          <option [value]="3">3ème étage</option>
+        </select>
+
+        <label>Surface (m²)</label>
+        <input [(ngModel)]="formData.surface" name="surface" type="number" min="0" />
+
+        <label>Loyer mensuel (Ar)</label>
+        <input [(ngModel)]="formData.rent" name="rent" type="number" min="0" />
+
+        <label>Description</label>
+        <input [(ngModel)]="formData.description" name="description" placeholder="Description de l'emplacement" />
+
+        <label>Boutique assignée</label>
+        <select [(ngModel)]="formData.boutiqueId" name="boutiqueId">
+          <option value="">-- Aucune (Disponible) --</option>
+          <option *ngFor="let b of boutiques" [value]="b._id">{{ b.name }}</option>
+        </select>
+
+        <div class="form-actions">
+          <button type="button" class="cancel-btn" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="submit-btn">{{ isEditing ? 'Enregistrer' : 'Ajouter' }}</button>
+        </div>
+      </form>
     </div>
-    <div class="modal-backdrop" (click)="closeForm()"></div>
+    <div class="modal-backdrop" (click)="closeModal()"></div>
+  </div>
+
+  <!-- Modal Delete -->
+  <div *ngIf="showDeleteModal" class="modal-overlay">
+    <div class="modal-content delete-modal">
+      <h3>Confirmer la suppression</h3>
+      <p>Êtes-vous sûr de vouloir supprimer l'emplacement <strong>{{ selectedEmplacement?.code }}</strong> ?</p>
+      <p class="warning-text">Cette action est irréversible.</p>
+      <div class="form-actions">
+        <button type="button" class="cancel-btn" (click)="closeModal()">Annuler</button>
+        <button type="button" class="delete-confirm-btn" (click)="deleteEmplacement()">Supprimer</button>
+      </div>
+    </div>
+    <div class="modal-backdrop" (click)="closeModal()"></div>
   </div>
 </div>

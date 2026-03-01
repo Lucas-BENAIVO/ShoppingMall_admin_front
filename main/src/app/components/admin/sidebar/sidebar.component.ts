@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, HostBinding } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../material.module';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -12,6 +13,10 @@ import { MaterialModule } from '../../../material.module';
   styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent implements OnInit {
+  @Input() isOpen = false;
+  @Output() closeSidebar = new EventEmitter<void>();
+  
+  @HostBinding('class.open') get openClass() { return this.isOpen; }
   menuItems = [
     {
       icon: 'home',
@@ -20,32 +25,20 @@ export class SidebarComponent implements OnInit {
       active: true
     },
     {
-      icon: 'storefront',
-      label: 'Boutique',
-      route: '/admin/boutique',
-      active: false
-    },
-    {
-      icon: 'inventory_2',
-      label: 'Produits',
-      route: '/admin/produits',
-      active: false
-    },
-    {
-      icon: 'shopping_cart',
-      label: 'Commandes',
-      route: '/admin/commandes',
-      active: false
-    },
-    {
       icon: 'groups',
       label: 'Utilisateurs',
       route: '/admin/utilisateurs',
       active: false
     },
     {
-      icon: 'tune',
-      label: 'Configuration',
+      icon: 'storefront',
+      label: 'Boutique',
+      route: '/admin/boutique',
+      active: false
+    },
+    {
+      icon: 'local_offer',
+      label: 'Promotions',
       route: '/admin/promotions',
       active: false
     },
@@ -57,21 +50,7 @@ export class SidebarComponent implements OnInit {
     }
   ];
 
-  accountItems = [
-    {
-      icon: 'warehouse',
-      label: 'Gestion de stock',
-      route: '/admin/stock',
-      expandable: true,
-      expanded: false,
-      active: false,
-      subItems: [
-        { label: 'Inventaire', route: '/admin/inventaire' },
-        { label: 'Dépenses', route: '/admin/depenses' },
-        { label: 'Remboursement', route: '/admin/remboursement' }
-      ]
-    }
-  ];
+  accountItems: any[] = [];
 
   settingsItems = [
     {
@@ -83,12 +62,21 @@ export class SidebarComponent implements OnInit {
     {
       icon: 'logout',
       label: 'Déconnexion',
-      route: '/authentication/login',
-      active: false
+      route: null,
+      active: false,
+      action: 'logout'
     }
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/authentication/login']);
+  }
 
   toggleExpand(item: any): void {
     item.expanded = !item.expanded;
@@ -97,6 +85,12 @@ export class SidebarComponent implements OnInit {
   setActive(item: any): void {
     this.resetActive();
     item.active = true;
+    // Close sidebar on mobile after selection
+    this.closeSidebar.emit();
+  }
+  
+  close(): void {
+    this.closeSidebar.emit();
   }
 
   resetActive(): void {

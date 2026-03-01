@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AdminStatsService, TopBoutique } from '../../../services/admin-stats.service';
 
 @Component({
   selector: 'app-top-shops',
@@ -8,12 +9,37 @@ import { CommonModule } from '@angular/common';
   templateUrl: './top-shops.component.html',
   styleUrls: ['./top-shops.component.scss']
 })
-export class TopShopsComponent {
-  topShops = [
-    { rank: 1, name: 'Elite Fashion Hub', category: 'Mode & Accessoires', revenue: '$48,200', change: '+32%' },
-    { rank: 2, name: 'Tech Paradise', category: 'Électronique', revenue: '$42,800', change: '+28%' },
-    { rank: 3, name: 'Beauty Essentials', category: 'Beauté & Santé', revenue: '$38,500', change: '+24%' },
-    { rank: 4, name: 'Home Comfort Store', category: 'Maison & Vie', revenue: '$32,900', change: '+20%' },
-    { rank: 5, name: 'Sports Central', category: 'Sports & Plein air', revenue: '$29,400', change: '+15%' }
-  ];
+export class TopShopsComponent implements OnInit {
+  topShops: { rank: number; name: string; category: string; revenue: string; change: string }[] = [];
+  isLoading = true;
+
+  constructor(private adminStatsService: AdminStatsService) {}
+
+  ngOnInit(): void {
+    this.loadTopShops();
+  }
+
+  loadTopShops(): void {
+    this.adminStatsService.getTopBoutiques().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.topShops = response.data.map((shop, index) => ({
+            rank: index + 1,
+            name: shop.nom,
+            category: `${shop.produits} produits vendus`,
+            revenue: this.formatCurrency(shop.revenue),
+            change: `${shop.commandes} cmd`
+          }));
+        }
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
+  }
+
+  formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('fr-MG', { maximumFractionDigits: 0 }).format(amount) + ' Ar';
+  }
 }

@@ -1,7 +1,7 @@
 <div class="boutique-page-container">
-  <app-sidebar></app-sidebar>
+  <app-sidebar [isOpen]="sidebarOpen" (closeSidebar)="closeSidebar()"></app-sidebar>
   <div class="main-content">
-    <app-boutique-navbar></app-boutique-navbar>
+    <app-boutique-navbar (menuToggle)="toggleSidebar()"></app-boutique-navbar>
     <div class="main-content-inner">
       <app-boutique-list></app-boutique-list>
     </div>

@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
-  selector: 'app-root',   // ← manquant
-  standalone: true,
-  imports: [RouterModule],
-  template: `<router-outlet></router-outlet>`
+  selector: 'app-root',
+  imports: [RouterOutlet],
+  templateUrl: './app.component.html'
 })
-export class AppComponent {}
+export class AppComponent {
+  title = 'Modernize Angular Admin Template';
+}

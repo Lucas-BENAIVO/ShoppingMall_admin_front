@@ -2,6 +2,11 @@ import { Routes } from '@angular/router';
 
 export const BoutiqueRoutes: Routes = [
   {
+    path: '',
+    redirectTo: 'dashboard',
+    pathMatch: 'full'
+  },
+  {
     path: 'boutique',
     loadComponent: () => import('./boutique/boutique.page').then(m => m.BoutiquePage),
   },
@@ -32,5 +37,13 @@ export const BoutiqueRoutes: Routes = [
   {
     path: 'emplacements',
     loadComponent: () => import('./emplacements/emplacements.page').then(m => m.EmplacementsPage),
+  },
+  {
+    path: 'gestion-stock',
+    loadComponent: () => import('./gestion-stock/gestion-stock.page').then(m => m.GestionStockPage),
+  },
+  {
+    path: 'statistiques',
+    loadComponent: () => import('./statistiques/statistiques.component').then(m => m.StatistiquesComponent),
   },
 ];

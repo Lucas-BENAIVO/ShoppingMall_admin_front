@@ -12,4 +12,14 @@ import { EmplacementsComponent } from '../../../components/admin/emplacements/em
   templateUrl: './emplacements.page.html',
   styleUrls: ['./emplacements.page.scss']
 })
-export class EmplacementsPage {}
+export class EmplacementsPage {
+  sidebarOpen = false;
+  
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+  
+  closeSidebar(): void {
+    this.sidebarOpen = false;
+  }
+}

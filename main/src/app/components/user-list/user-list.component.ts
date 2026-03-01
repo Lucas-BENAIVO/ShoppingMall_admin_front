@@ -1,29 +1,28 @@
 import { Component, OnInit } from '@angular/core';
-import { UserService } from '../../services/user.service';
-import { User } from '../../models/user.model';
+import { UserService, UserData, UserResponse } from '../../services/user.service';
 
-
-import { CommonModule } from '@angular/common';  // <-- importer CommonModule pour *ngIf/*ngFor
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-user-list',
-  standalone: true, // <-- important si c'est standalone
-  imports: [CommonModule], // <-- ici on ajoute CommonModule
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './user-list.component.html'
 })
 export class UserListComponent implements OnInit {
 
-  users: User[] = []; // ici on stocke les users
+  users: UserData[] = [];
 
   constructor(private userService: UserService) {}
 
   ngOnInit(): void {
-    // Appel du service
-    this.userService.getUsers().subscribe({
-      next: (data) => {
-        this.users = data; // on remplit le tableau
+    this.userService.getAllUsers().subscribe({
+      next: (response: UserResponse) => {
+        if (response.success && Array.isArray(response.data)) {
+          this.users = response.data;
+        }
       },
-      error: (err) => {
+      error: (err: Error) => {
         console.error('Erreur API:', err);
       }
     });
